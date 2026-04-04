@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 // Use the Render URL for Production
-const SOCKET_URL = "https://pinnacle-backend-1-qyyx.onrender.com";
+const SOCKET_URL = import.meta.env.VITE_API_URL;
 
 export const useChat = (userId: string) => {
   const socketRef = useRef<Socket | null>(null);
