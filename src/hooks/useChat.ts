@@ -1,53 +1,8 @@
-// import { useEffect, useState, useRef } from 'react';
-// import { io, Socket } from 'socket.io-client';
-
-// const SOCKET_URL = "http://localhost:5000";
-
-// export const useChat = (userId: string) => {
-//   const socketRef = useRef<Socket | null>(null);
-//   const [messages, setMessages] = useState<any[]>([]);
-
-//   useEffect(() => {
-//   // If userId is missing, don't even try to connect
-//   if (!userId || userId === "undefined") {
-//     console.error("❌ Cannot connect: userId is missing");
-//     return;
-//   }
-
-//   const socket = io(SOCKET_URL, { withCredentials: true });
-//   socketRef.current = socket;
-
-//   socket.on('connect', () => {
-//     console.log("⚡ Connected as:", userId);
-//     socket.emit('join', String(userId)); // THIS fills the map on the server
-//   });
-
-//   socket.on('receiveMessage', (message: any) => {
-//     setMessages((prev) => [...prev, message]);
-//   });
-
-//   return () => { socket.disconnect(); };
-// }, [userId]); // IMPORTANT: This triggers the join when userId finally loads
-
-//   const sendMessage = (receiverId: string, content: string, senderName: string) => {
-//     if (socketRef.current) {
-//       socketRef.current.emit('sendMessage', {
-//         senderId: userId,
-//         senderName,
-//         receiverId,
-//         content,
-//       });
-//     }
-//   };
-
-//   return { messages, sendMessage, setMessages };
-// };
-
 import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 // Use the Render URL for Production
-const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const SOCKET_URL = "https://pinnacle-backend-1-qyyx.onrender.com";
 
 export const useChat = (userId: string) => {
   const socketRef = useRef<Socket | null>(null);
@@ -59,7 +14,7 @@ export const useChat = (userId: string) => {
     // Use 'websocket' transport to avoid Render's proxy polling delays
     const socket = io(SOCKET_URL, { 
       withCredentials: true,
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
       upgrade: false
     });
     

@@ -1,19 +1,98 @@
+// // import React, { useEffect, useState } from 'react';
+// // import API from '../api/axios';
+// // import Navbar from '../components/Navbar';
+// // import { FileText, User, Download, ExternalLink } from 'lucide-react';
+
+// // const AdminDocumentVault = () => {
+// //   const [vaultItems, setVaultItems] = useState<any[]>([]);
+
+// //   useEffect(() => {
+// //     const fetchVault = async () => {
+// //       try {
+// //         // We fetch all requests and filter for those with documents
+// //         const { data } = await API.get('/consultations/admin/all');
+// //         const withDocs = data.filter((req: any) => req.documents && req.documents.length > 0);
+// //         setVaultItems(withDocs);
+// //       } catch (err) { console.error(err); }
+// //     };
+// //     fetchVault();
+// //   }, []);
+
+// //   return (
+// //     <div className="min-h-screen bg-slate-50 pt-24 pb-20">
+// //       <Navbar />
+// //       <div className="max-w-7xl mx-auto px-6">
+// //         <div className="mb-10">
+// //           <h1 className="text-4xl font-black text-slate-900">Document Vault</h1>
+// //           <p className="text-slate-500 font-medium">Review submitted verification files from approved clients.</p>
+// //         </div>
+
+// //         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+// //           {vaultItems.map((item) => (
+// //             <div key={item._id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 flex flex-col">
+// //               <div className="flex items-center gap-3 mb-6">
+// //                 <div className="bg-blue-100 p-3 rounded-2xl text-blue-600"><User size={24}/></div>
+// //                 <div>
+// //                   <h3 className="font-black text-slate-900">{item.user?.fullName}</h3>
+// //                   <p className="text-xs text-slate-400">{item.answers.service}</p>
+// //                 </div>
+// //               </div>
+
+// //               <div className="space-y-3 flex-1">
+// //                 <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Files ({item.documents.length})</p>
+// //                 {item.documents.map((doc: string, idx: number) => {
+// //                   const isImage = /\.(jpg|jpeg|png|webp)$/i.test(doc);
+// //                   const fileUrl = `http://localhost:5000/${doc.replace(/\\/g, '/')}`;
+
+// //                   return (
+// //                     <a 
+// //                       key={idx} 
+// //                       href={fileUrl} 
+// //                       target="_blank" 
+// //                       rel="noreferrer"
+// //                       className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-blue-50 transition border border-slate-100 group"
+// //                     >
+// //                       <div className="flex items-center gap-2">
+// //                         <FileText size={16} className="text-slate-400" />
+// //                         <span className="text-xs font-bold text-slate-600">Document {idx + 1}</span>
+// //                       </div>
+// //                       <ExternalLink size={14} className="text-slate-300 group-hover:text-blue-600" />
+// //                     </a>
+// //                   );
+// //                 })}
+// //               </div>
+// //             </div>
+// //           ))}
+// //         </div>
+// //       </div>
+// //     </div>
+// //   );
+// // };
+
+// // export default AdminDocumentVault;
+
+
+
 // import React, { useEffect, useState } from 'react';
 // import API from '../api/axios';
 // import Navbar from '../components/Navbar';
-// import { FileText, User, Download, ExternalLink } from 'lucide-react';
+// import { FileText, User, ExternalLink, Image as ImageIcon, FolderOpen } from 'lucide-react';
 
 // const AdminDocumentVault = () => {
 //   const [vaultItems, setVaultItems] = useState<any[]>([]);
+//   const [loading, setLoading] = useState(true);
 
 //   useEffect(() => {
 //     const fetchVault = async () => {
 //       try {
-//         // We fetch all requests and filter for those with documents
 //         const { data } = await API.get('/consultations/admin/all');
 //         const withDocs = data.filter((req: any) => req.documents && req.documents.length > 0);
 //         setVaultItems(withDocs);
-//       } catch (err) { console.error(err); }
+//       } catch (err) { 
+//         console.error(err); 
+//       } finally {
+//         setLoading(false);
+//       }
 //     };
 //     fetchVault();
 //   }, []);
@@ -24,54 +103,78 @@
 //       <div className="max-w-7xl mx-auto px-6">
 //         <div className="mb-10">
 //           <h1 className="text-4xl font-black text-slate-900">Document Vault</h1>
-//           <p className="text-slate-500 font-medium">Review submitted verification files from approved clients.</p>
+//           <p className="text-slate-500 font-medium">Review identity and tax verification files.</p>
 //         </div>
 
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-//           {vaultItems.map((item) => (
-//             <div key={item._id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 flex flex-col">
-//               <div className="flex items-center gap-3 mb-6">
-//                 <div className="bg-blue-100 p-3 rounded-2xl text-blue-600"><User size={24}/></div>
-//                 <div>
-//                   <h3 className="font-black text-slate-900">{item.user?.fullName}</h3>
-//                   <p className="text-xs text-slate-400">{item.answers.service}</p>
+//         {loading ? (
+//           <div className="text-center py-20 font-bold text-slate-400">Accessing Vault...</div>
+//         ) : vaultItems.length === 0 ? (
+//           <div className="bg-white rounded-[3rem] p-20 text-center border-2 border-dashed border-slate-200">
+//             <FolderOpen size={48} className="text-slate-200 mx-auto mb-4" />
+//             <p className="text-slate-400 font-bold">The vault is currently empty. No documents uploaded yet.</p>
+//           </div>
+//         ) : (
+//         <div className="max-w-6xl mx-auto px-6">
+//           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+//             {vaultItems.map((item) => (
+//               <div key={item._id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 flex flex-col hover:border-blue-200 transition-colors">
+//                 <div className="flex items-center gap-3 mb-6">
+//                   <div className="bg-blue-600 p-3 rounded-2xl text-white shadow-lg shadow-blue-200">
+//                     <User size={24}/>
+//                   </div>
+//                   <div>
+//                     <h3 className="font-black text-slate-900">{item.user?.fullName || 'Unknown User'}</h3>
+//                     <p className="text-[10px] font-bold uppercase text-blue-600 tracking-wider">
+//                       {item.answers?.service || 'Verification'}
+//                     </p>
+//                   </div>
+//                 </div>
+
+//                 <div className="space-y-3 flex-1">
+//                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">
+//                     Submitted Files ({item.documents.length})
+//                   </p>
+//                   {item.documents.map((doc: string, idx: number) => {
+//                     const isPDF = doc.toLowerCase().endsWith('.pdf');
+//                     const fileUrl = `http://localhost:5000/${doc.replace(/\\/g, '/')}`;
+
+//                     return (
+//                       <a 
+//                         key={idx} 
+//                         href={fileUrl} 
+//                         target="_blank" 
+//                         rel="noreferrer"
+//                         className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-md transition-all border border-slate-100 group"
+//                       >
+//                         <div className="flex items-center gap-3">
+//                           {isPDF ? (
+//                             <FileText size={20} className="text-red-500" />
+//                           ) : (
+//                             <ImageIcon size={20} className="text-blue-500" />
+//                           )}
+//                           <div className="flex flex-col">
+//                             <span className="text-xs font-bold text-slate-700">Document {idx + 1}</span>
+//                             <span className="text-[9px] text-slate-400 uppercase font-black tracking-tighter">
+//                               {isPDF ? 'PDF File' : 'Image File'}
+//                             </span>
+//                           </div>
+//                         </div>
+//                         <ExternalLink size={14} className="text-slate-300 group-hover:text-blue-600" />
+//                       </a>
+//                     );
+//                   })}
 //                 </div>
 //               </div>
-
-//               <div className="space-y-3 flex-1">
-//                 <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Files ({item.documents.length})</p>
-//                 {item.documents.map((doc: string, idx: number) => {
-//                   const isImage = /\.(jpg|jpeg|png|webp)$/i.test(doc);
-//                   const fileUrl = `http://localhost:5000/${doc.replace(/\\/g, '/')}`;
-
-//                   return (
-//                     <a 
-//                       key={idx} 
-//                       href={fileUrl} 
-//                       target="_blank" 
-//                       rel="noreferrer"
-//                       className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-blue-50 transition border border-slate-100 group"
-//                     >
-//                       <div className="flex items-center gap-2">
-//                         <FileText size={16} className="text-slate-400" />
-//                         <span className="text-xs font-bold text-slate-600">Document {idx + 1}</span>
-//                       </div>
-//                       <ExternalLink size={14} className="text-slate-300 group-hover:text-blue-600" />
-//                     </a>
-//                   );
-//                 })}
-//               </div>
-//             </div>
-//           ))}
+//             ))}
+//           </div>
 //         </div>
+//         )}
 //       </div>
 //     </div>
 //   );
 // };
 
 // export default AdminDocumentVault;
-
-
 
 import React, { useEffect, useState } from 'react';
 import API from '../api/axios';
@@ -86,6 +189,7 @@ const AdminDocumentVault = () => {
     const fetchVault = async () => {
       try {
         const { data } = await API.get('/consultations/admin/all');
+        // Filter for requests that actually have a documents array with content
         const withDocs = data.filter((req: any) => req.documents && req.documents.length > 0);
         setVaultItems(withDocs);
       } catch (err) { 
@@ -114,7 +218,6 @@ const AdminDocumentVault = () => {
             <p className="text-slate-400 font-bold">The vault is currently empty. No documents uploaded yet.</p>
           </div>
         ) : (
-        <div className="max-w-6xl mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {vaultItems.map((item) => (
               <div key={item._id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 flex flex-col hover:border-blue-200 transition-colors">
@@ -134,9 +237,13 @@ const AdminDocumentVault = () => {
                   <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-2">
                     Submitted Files ({item.documents.length})
                   </p>
-                  {item.documents.map((doc: string, idx: number) => {
-                    const isPDF = doc.toLowerCase().endsWith('.pdf');
-                    const fileUrl = `http://localhost:5000/${doc.replace(/\\/g, '/')}`;
+                  {item.documents.map((docObj: any, idx: number) => {
+                    // FIX: Ensure we handle both string (old) and object (new) data
+                    const rawPath = typeof docObj === 'string' ? docObj : docObj?.path;
+                    if (!rawPath) return null;
+
+                    const isPDF = rawPath.toLowerCase().endsWith('.pdf');
+                    const fileUrl = `https://pinnacle-backend-1-qyyx.onrender.com/${rawPath.replace(/\\/g, '/')}`;
 
                     return (
                       <a 
@@ -155,7 +262,7 @@ const AdminDocumentVault = () => {
                           <div className="flex flex-col">
                             <span className="text-xs font-bold text-slate-700">Document {idx + 1}</span>
                             <span className="text-[9px] text-slate-400 uppercase font-black tracking-tighter">
-                              {isPDF ? 'PDF File' : 'Image File'}
+                              {docObj.status || 'Pending'}
                             </span>
                           </div>
                         </div>
@@ -167,7 +274,6 @@ const AdminDocumentVault = () => {
               </div>
             ))}
           </div>
-        </div>
         )}
       </div>
     </div>
