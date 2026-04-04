@@ -16,9 +16,11 @@ export const useChat = (userId: string) => {
 
     const socket = io(cleanUrl, { 
       withCredentials: true,
-      transports: ['websocket'], // Render works best when forced to websocket
-      upgrade: false,
-      reconnection: true
+      transports: ['websocket'], // FORCE websocket only
+      upgrade: false,             // Prevent trying to upgrade from polling
+      reconnection: true,
+      reconnectionAttempts: 5,
+      timeout: 20000             // Give Render's cold start some time
     });
     
     socketRef.current = socket;
