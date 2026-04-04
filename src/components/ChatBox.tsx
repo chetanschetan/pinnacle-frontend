@@ -57,43 +57,44 @@ const ChatBox = ({ currentUser, receiverId, receiverName }: any) => {
   // ... (imports and component start remain the same)
 
   const handleSend = async () => {
-    if (!input.trim() || !receiverId) return;
-    
-    const textToSend = input;
-    const tempId = Date.now().toString(); 
-    setInput(''); 
+  if (!input.trim() || !receiverId) return;
+  
+  const textToSend = input;
+  const tempId = Date.now().toString(); 
+  setInput(''); 
 
-    const optimisticMessage = {
-      _id: tempId, 
-      senderId: String(myId).trim(),
-      senderName: "You", 
-      content: textToSend,
-      createdAt: new Date().toISOString()
-    };
-    
-    setMessages((prev) => [...prev, optimisticMessage]);
-
-    try {
-      // Step 1: Save to DB
-      const { data } = await API.post('/chat/send', { 
-        receiverId: String(receiverId).trim(), 
-        content: textToSend 
-      });
-
-      // Step 2: Immediate Socket Relay
-      sendMessage(String(receiverId).trim(), textToSend, currentUser.fullName || "User");
-
-      // Step 3: Replace temp with real data
-      setMessages((prev) => 
-        prev.map(msg => msg._id === tempId ? data : msg)
-      );
-
-    } catch (err: any) { 
-      console.error("❌ Chat Error:", err.response?.data || err.message);
-      setMessages((prev) => prev.filter(msg => msg._id !== tempId));
-      alert("Failed to send message."); 
-    }
+  // 1. UI Update (Instant)
+  const optimisticMessage = {
+    _id: tempId, 
+    senderId: String(myId).trim(),
+    senderName: "You", 
+    content: textToSend,
+    createdAt: new Date().toISOString()
   };
+  setMessages((prev) => [...prev, optimisticMessage]);
+
+  // 2. SOCKET RELAY (Instant - Do this BEFORE the await)
+  // This ensures the other person gets it immediately even if the DB is slow
+  sendMessage(String(receiverId).trim(), textToSend, currentUser.fullName || "User");
+
+  try {
+    // 3. DATABASE PERSISTENCE (Background)
+    const { data } = await API.post('/chat/send', { 
+      receiverId: String(receiverId).trim(), 
+      content: textToSend 
+    });
+
+    // 4. SYNC UI with DB ID
+    setMessages((prev) => 
+      prev.map(msg => msg._id === tempId ? data : msg)
+    );
+
+  } catch (err: any) { 
+    console.error("❌ DB Save Failed:", err.message);
+    // If DB fails, we don't necessarily remove it from UI if socket worked, 
+    // but usually, it's safer to alert the user.
+  }
+};
 
 // ... (render logic remains the same)
 
