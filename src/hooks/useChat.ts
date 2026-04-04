@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-// Use the Render URL for Production
-const SOCKET_URL = import.meta.env.VITE_API_URL;
+// Ensure this is ONLY the root URL (e.g., https://pinnacle-backend-1-qyyx.onrender.com)
+const SOCKET_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export const useChat = (userId: string) => {
   const socketRef = useRef<Socket | null>(null);
@@ -11,23 +11,29 @@ export const useChat = (userId: string) => {
   useEffect(() => {
     if (!userId || userId === "undefined") return;
 
-    // Use 'websocket' transport to avoid Render's proxy polling delays
-    const socket = io(SOCKET_URL, { 
+    // FIX: Clean the URL to ensure no /api suffix exists for the socket handshake
+    const cleanUrl = SOCKET_URL.replace(/\/api$/, "");
+
+    const socket = io(cleanUrl, { 
       withCredentials: true,
-      transports: ['websocket', 'polling'],
-      upgrade: false
+      transports: ['websocket'], // Render works best when forced to websocket
+      upgrade: false,
+      reconnection: true
     });
     
     socketRef.current = socket;
 
     socket.on('connect', () => {
       console.log("⚡ Socket Connected:", socket.id);
-      socket.emit('join', String(userId));
+      socket.emit('join', String(userId).trim());
     });
 
     socket.on('receiveMessage', (message: any) => {
-      console.log("📩 New Message Received:", message);
       setMessages((prev) => [...prev, message]);
+    });
+
+    socket.on('connect_error', (err) => {
+      console.error("❌ Socket Connection Error:", err.message);
     });
 
     return () => { 
@@ -36,20 +42,15 @@ export const useChat = (userId: string) => {
   }, [userId]);
 
   const sendMessage = (receiverId: string, content: string, senderName: string) => {
-    if (socketRef.current) {
+    if (socketRef.current?.connected) {
       const msgData = {
-        senderId: userId,
+        senderId: String(userId).trim(),
         senderName,
-        receiverId,
+        receiverId: String(receiverId).trim(),
         content,
         createdAt: new Date().toISOString()
       };
-
-      // 1. Tell the server to relay it
       socketRef.current.emit('sendMessage', msgData);
-
-      // 2. OPTIONAL: If you want instant feedback for the sender
-      // setMessages((prev) => [...prev, msgData]);
     }
   };
 

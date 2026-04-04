@@ -49,18 +49,12 @@
 // frontend/src/api/axios.ts
 import axios from 'axios';
 
-// 1. Create a dynamic Base URL
-// In development, it uses localhost. In production, it uses your Render URL.
-const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api` || 'http://localhost:5000/api';
+// Remove the /api from the base variable here so Sockets can use the root
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const API = axios.create({
-  baseURL: API_BASE_URL,
-  withCredentials: true, // This allows cookies to pass between Vercel and Render
+  baseURL: `${BASE_URL}/api`, // Axios gets the /api suffix here
+  withCredentials: true,
 });
-
-// Optional: Log it once so you can verify in the browser console
-if (import.meta.env.DEV) {
-  console.log(`🔗 Frontend connected to: ${API_BASE_URL}`);
-}
 
 export default API;
