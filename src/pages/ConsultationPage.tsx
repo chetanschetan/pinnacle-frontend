@@ -50,36 +50,45 @@ const ConsultationPage = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault(); // Always call this first to prevent page refresh
+    e.preventDefault();
 
-      // Phone Validation
-      if (formData.phone.length !== 10) {
-          alert("Error: Phone number must be exactly 10 digits.");
-          return;
-      }
+    // 1. Phone Validation
+    if (formData.phone.length !== 10) {
+        alert("Error: Phone number must be exactly 10 digits.");
+        return;
+    }
 
-      // Form Field Validation
-      if (!formData.service || !formData.requirementType || !formData.incomeRange) {
-          alert("Please fill in all required fields marked with *");
-          return;
-      }
+    // 2. Form Field Validation
+    if (!formData.service || !formData.requirementType || !formData.incomeRange) {
+        alert("Please fill in all required fields marked with *");
+        return;
+    }
 
-      try {
-          setLoading(true); // Now 'loading' is defined and usable
-          
-          // Ensure the payload matches your model structure
-          await API.post('/consultations/submit', { answers: formData });
-          
-          alert("Consultation submitted successfully!");
-          navigate('/userdashboard');
-      } catch (err) { 
-          console.error(err);
-          alert("Submission failed. Please try again."); 
-      } finally {
-          setLoading(false); // Stop the spinner/loading state
-      }
-  };
-
+    try {
+        setLoading(true);
+        
+        // Ensure this matches your backend route exactly!
+        // If your backend says app.use('/api/consultations', ...), 
+        // and inside that router you have .post('/submit', ...), this is correct.
+        await API.post('/consultations/submit', { answers: formData });
+        
+        alert("Consultation submitted successfully!");
+        navigate('/userdashboard');
+    } catch (err: any) { 
+        // UPDATED: Better error logging
+        const errorMessage = err.response?.data?.message || "Submission failed. Please try again.";
+        console.error("API Error:", err.response?.status, errorMessage);
+        
+        if (err.response?.status === 401) {
+            alert("Session expired. Please log in again.");
+            navigate('/login'); // Redirect if unauthorized
+        } else {
+            alert(errorMessage);
+        }
+    } finally {
+        setLoading(false);
+    }
+};
   return (
     <div className="min-h-screen bg-slate-50 pt-28 pb-20">
       <Navbar />
