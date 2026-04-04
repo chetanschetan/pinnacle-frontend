@@ -262,20 +262,30 @@ const UserDashboard: React.FC = () => {
     };
     initDashboard();
   }, []);
+  
 
   const handleDeleteDoc = async (consultationId: string, filePath: string) => {
-    if (!window.confirm("Delete this document?")) return;
-    try {
-      await API.delete(`/consultations/${consultationId}/document`, { data: { filePath } });
-      setRequests(prev => prev.map(r => 
-        r._id === consultationId 
-        ? { ...r, documents: r.documents.filter((d: any) => (typeof d === 'string' ? d : d.path) !== filePath) } 
+  if (!window.confirm("Delete this document?")) return;
+  
+  try {
+    // 1. Wait for server confirmation
+    const { data } = await API.delete(`/consultations/${consultationId}/document`, { 
+      data: { filePath } 
+    });
+
+    // 2. Update UI using the document list returned by the Backend
+    setRequests(prev => prev.map(r => 
+      r._id === consultationId 
+        ? { ...r, documents: data.documents } // <--- Sync directly with DB result
         : r
-      ));
-    } catch (err) { 
-      alert("Delete failed"); 
-    }
-  };
+    ));
+    
+    console.log("✅ Deleted from DB and UI");
+  } catch (err) { 
+    console.error("Delete failed", err);
+    alert("Delete failed. Are you still logged in?"); 
+  }
+};
 
   if (loading) {
     return (
