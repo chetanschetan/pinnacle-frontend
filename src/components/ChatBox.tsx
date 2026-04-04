@@ -32,27 +32,72 @@ const ChatBox = ({ currentUser, receiverId, receiverName }: any) => {
     return null;
   }
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
-    const textToSend = input;
-    setInput(''); 
+  // const handleSend = async () => {
+  //   if (!input.trim()) return;
+  //   const textToSend = input;
+  //   setInput(''); 
 
-    const newMessage = {
-      senderId: String(myId),
-      senderName: "You", 
-      content: textToSend,
-      createdAt: new Date().toISOString()
-    };
+  //   const newMessage = {
+  //     senderId: String(myId),
+  //     senderName: "You", 
+  //     content: textToSend,
+  //     createdAt: new Date().toISOString()
+  //   };
     
-    setMessages((prev) => [...prev, newMessage]);
+  //   setMessages((prev) => [...prev, newMessage]);
+  //   sendMessage(receiverId, textToSend, currentUser.fullName || "User");
+
+  //   try {
+  //     await API.post('/chat/send', { receiverId, content: textToSend });
+  //   } catch (err) { 
+  //     console.error("DB Error", err); 
+  //   }
+  // };
+
+  const handleSend = async () => {
+  if (!input.trim() || !receiverId) return;
+  
+  const textToSend = input;
+  const tempId = Date.now().toString(); // Temporary ID for React keys
+  setInput(''); 
+
+  // 1. Create a local "Optimistic" message
+  const optimisticMessage = {
+    _id: tempId, 
+    senderId: String(myId),
+    senderName: "You", 
+    content: textToSend,
+    createdAt: new Date().toISOString()
+  };
+  
+  // 2. Update UI instantly (Optimistic Update)
+  setMessages((prev) => [...prev, optimisticMessage]);
+
+  try {
+    // 3. THE HANDSHAKE: Save to MongoDB
+    // Ensure your backend 'protect' middleware is receiving the cookie!
+    const { data } = await API.post('/chat/send', { 
+      receiverId: String(receiverId), 
+      content: textToSend 
+    });
+
+    // 4. TRIGGER SOCKET: Relay to the other user instantly
+    // We use the data from the server to ensure IDs are 100% correct
     sendMessage(receiverId, textToSend, currentUser.fullName || "User");
 
-    try {
-      await API.post('/chat/send', { receiverId, content: textToSend });
-    } catch (err) { 
-      console.error("DB Error", err); 
-    }
-  };
+    // 5. Replace temp message with real DB message (Optional but cleaner)
+    setMessages((prev) => 
+      prev.map(msg => msg._id === tempId ? data : msg)
+    );
+
+  } catch (err: any) { 
+    console.error("❌ Chat Handshake Failed:", err.response?.data || err.message);
+    
+    // 6. Error Handling: Remove the fake message if it failed to save
+    setMessages((prev) => prev.filter(msg => msg._id !== tempId));
+    alert("Message could not be saved. Are you logged in?"); 
+  }
+};
 
   return (
     <div className="fixed bottom-10 right-10 z-[10000]">

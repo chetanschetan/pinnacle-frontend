@@ -59,7 +59,8 @@ export const useChat = (userId: string) => {
     // Use 'websocket' transport to avoid Render's proxy polling delays
     const socket = io(SOCKET_URL, { 
       withCredentials: true,
-      transports: ['websocket'] 
+      transports: ['websocket'],
+      upgrade: false
     });
     
     socketRef.current = socket;
