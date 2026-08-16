@@ -75,6 +75,19 @@ const Footer = () => {
       {/* Copyright Area */}
       <div className="max-w-7xl mx-auto px-6 mt-10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium text-slate-500">
         <p>© 2021 Pinnacle Accounting Services. All Rights Reserved.</p>
+        <div className="flex items-center gap-2 text-slate-400">
+          <span>Designed & Developed with</span>
+          <span className="text-blue-500">❤️</span>
+          <span>by</span>
+          <a 
+            href="https://your-portfolio-link.com" // Replace with your actual portfolio, GitHub, or LinkedIn URL
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-white font-semibold hover:text-blue-400 transition"
+          >
+            Your Name
+          </a>
+        </div>
         <div className="flex gap-8">
           <a href="#" className="hover:text-white transition">Privacy Policy</a>
           <a href="#" className="hover:text-white transition">Terms of Service</a>
