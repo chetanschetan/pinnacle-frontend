@@ -85,7 +85,7 @@ const Footer = () => {
             rel="noopener noreferrer"
             className="text-white font-semibold hover:text-blue-400 transition"
           >
-            Your Name
+            Chetan Sharma
           </a>
         </div>
         <div className="flex gap-8">
