@@ -54,49 +54,95 @@
     //   }
     // };
 
+
     // ... (imports and component start remain the same)
-
-    const handleSend = async () => {
-    if (!input.trim() || !receiverId) return;
+    // const handleSend = async () => {
+    // if (!input.trim() || !receiverId) return;
     
-    const textToSend = input;
-    const tempId = Date.now().toString(); 
-    setInput(''); 
+    // const textToSend = input;
+    // const tempId = Date.now().toString(); 
+    // setInput(''); 
 
-    // 1. UI Update (Instant)
-    const optimisticMessage = {
-      _id: tempId, 
-      senderId: String(myId).trim(),
-      senderName: "You", 
-      content: textToSend,
-      createdAt: new Date().toISOString()
-    };
-    setMessages((prev) => [...prev, optimisticMessage]);
+    // // 1. UI Update (Instant)
+    // const optimisticMessage = {
+    //   _id: tempId, 
+    //   senderId: String(myId).trim(),
+    //   senderName: "You", 
+    //   content: textToSend,
+    //   createdAt: new Date().toISOString()
+    // };
+    // setMessages((prev) => [...prev, optimisticMessage]);
 
     // 2. SOCKET RELAY (Instant - Do this BEFORE the await)
     // This ensures the other person gets it immediately even if the DB is slow
-    sendMessage(String(receiverId).trim(), textToSend, currentUser.fullName || "User");
+    // sendMessage(String(receiverId).trim(), textToSend, currentUser.fullName || "User");
 
-    try {
-      // 3. DATABASE PERSISTENCE (Background)
-      const { data } = await API.post('/chat/send', { 
-        receiverId: String(receiverId).trim(), 
-        content: textToSend 
-      });
+    // try {
+    //   // 3. DATABASE PERSISTENCE (Background)
+    //   const { data } = await API.post('/chat/send', { 
+    //     receiverId: String(receiverId).trim(), 
+    //     content: textToSend 
+    //   });
 
-      // 4. SYNC UI with DB ID
-      setMessages((prev) => 
-        prev.map(msg => msg._id === tempId ? data : msg)
-      );
+    //   // 4. SYNC UI with DB ID
+    //   setMessages((prev) => 
+    //     prev.map(msg => msg._id === tempId ? data : msg)
+    //   );
 
-    } catch (err: any) { 
-      console.error("❌ DB Save Failed:", err.message);
+    // } catch (err: any) { 
+    //   console.error("❌ DB Save Failed:", err.message);
       // If DB fails, we don't necessarily remove it from UI if socket worked, 
       // but usually, it's safer to alert the user.
-    }
-  };
+  //   }
+  // };
 
   // ... (render logic remains the same)
+
+
+    // --------------------> change made
+
+    // Replace your handleSend function with this:
+const handleSend = async () => {
+  if (!input.trim() || !receiverId) return;
+
+  const textToSend = input;
+  const tempId = Date.now().toString();
+  const currentUserId = String(myId).trim();
+  setInput('');
+
+  // 1. Instant Optimistic UI Update
+  const optimisticMessage = {
+    _id: tempId,
+    senderId: currentUserId,
+    senderName: "You",
+    content: textToSend,
+    createdAt: new Date().toISOString()
+  };
+
+  setMessages((prev) => [...prev, optimisticMessage]);
+
+  // 2. Socket Relay
+  sendMessage(String(receiverId).trim(), textToSend, currentUser.fullName || "User");
+
+  try {
+    // 3. Save to Database
+    const { data } = await API.post('/chat/send', {
+      receiverId: String(receiverId).trim(),
+      content: textToSend
+    });
+
+    // 4. Sync UI state with saved DB response
+    setMessages((prev) =>
+      prev.map((msg) => (msg._id === tempId ? { ...data, senderId: currentUserId } : msg))
+    );
+    } catch (err: any) {
+    console.error("❌ DB Save Failed:", err.message);
+  }
+};
+
+
+
+    // ---------------------> change finish
 
     return (
       <div className="fixed bottom-10 right-10 z-[10000]">
