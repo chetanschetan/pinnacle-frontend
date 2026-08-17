@@ -30,10 +30,34 @@ export const useChat = (userId: string) => {
       socket.emit('join', String(userId).trim());
     });
 
-    socket.on('receiveMessage', (message: any) => {
-      setMessages((prev) => [...prev, message]);
-    });
+    // socket.on('receiveMessage', (message: any) => {
+    //   setMessages((prev) => [...prev, message]);
+    // });
 
+
+
+    
+// ---------> change made
+socket.on('receiveMessage', (message: any) => {
+  setMessages((prev) => {
+    // Check if message already exists (either by _id or same sender+content+time gap)
+    const isDuplicate = prev.some(
+      (m) =>
+        m._id === message._id ||
+        (m.content === message.content &&
+          m.senderId === message.senderId &&
+          Math.abs(new Date(m.createdAt).getTime() - new Date(message.createdAt).getTime()) < 3000)
+    );
+
+    if (isDuplicate) return prev;
+    return [...prev, message];
+  });
+});
+// ---------------> change finish
+
+
+
+    
     socket.on('connect_error', (err) => {
       console.error("❌ Socket Connection Error:", err.message);
     });
