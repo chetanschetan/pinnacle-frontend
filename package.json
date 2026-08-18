@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/postcss": "^4.1.18",
     "axios": "^1.13.5",
+    "cors": "^2.8.6",
     "lucide-react": "^0.574.0",
     "plugin-react": "^0.0.1-security",
     "react": "^19.2.0",
@@ -23,6 +24,7 @@
     "@eslint/js": "^9.39.1",
     "@types/bcryptjs": "^3.0.0",
     "@types/cookie-parser": "^1.4.10",
+    "@types/cors": "^2.8.19",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.13",
     "@types/react": "^19.2.7",
