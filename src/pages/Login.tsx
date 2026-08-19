@@ -13,7 +13,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-        const { data } = await API.post('/api/auth/login', { email, password });
+        const { data } = await API.post('/auth/login', { email, password });
 
         // 1. SAVE THE DATA (This is the missing link!)
         // We store the whole data object (which contains name, email, role, etc.)

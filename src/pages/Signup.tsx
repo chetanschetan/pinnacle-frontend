@@ -20,7 +20,7 @@ const Signup = () => {
 
   try {
     // 1. Send the data to your Node.js/Express backend
-    const { data } = await API.post('/api/auth/register', formData);
+    const { data } = await API.post('/auth/register', formData);
     
     // 2. Instead of navigating away immediately, show the success prompt
     setShowModal(true); 
