@@ -1,0 +1,16 @@
+
+{
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "http://3.110.88.45:5000/api/$1"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
