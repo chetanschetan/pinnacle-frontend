@@ -125,7 +125,7 @@ const Login: React.FC = () => {
     try {
       // 1. API Call
       const { data } = await API.post('/auth/login', { email, password });
-      console.log("Full Login API Response:", res.data); // Console me log dekhein
+      console.log("Full Login API Response:", data); // Console me log dekhein
 
       // 2. Safe Extraction of Token and User Info
       const token = data.token || data.data?.token;
