@@ -17,7 +17,12 @@ const Login = () => {
 
         // 1. SAVE THE DATA (This is the missing link!)
         // We store the whole data object (which contains name, email, role, etc.)
-        localStorage.setItem('userInfo', JSON.stringify(data));
+        // localStorage.setItem('userInfo', JSON.stringify(data));
+        localStorage.setItem('token', data.token); 
+
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
 
         // 2. REDIRECT BASED ON ROLE
         // Note: Check if your backend sends 'data.role' or 'data.user.role'
