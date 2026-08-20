@@ -10,35 +10,40 @@ const Login = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-        const { data } = await API.post('/auth/login', { email, password });
-      console.log(data)
-        // 1. SAVE THE DATA (This is the missing link!)
-        // We store the whole data object (which contains name, email, role, etc.)
-        // localStorage.setItem('userInfo', JSON.stringify(data));
-        localStorage.setItem('token', data.token); 
+  e.preventDefault();
+  setLoading(true);
+  try {
+    const { data } = await API.post('/auth/login', { email, password });
+    console.log("Login Response:", data);
 
-        if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user));
-        }
-
-        // 2. REDIRECT BASED ON ROLE
-        // Note: Check if your backend sends 'data.role' or 'data.user.role'
-        const userRole = data.role; 
-
-        if (userRole === 'admin') {
-          navigate('/admin-dashboard');
-        } else {
-          navigate('/userdashboard');
-        }
-
-    } catch (err: any) {
-        alert(err.response?.data?.message || "Login failed");
-    } finally {
-        setLoading(false);
+    // 1. Token Save Karo (Axios Interceptor ke liye)
+    const token = data.token || data.user?.token;
+    if (token) {
+      localStorage.setItem('token', token);
     }
+
+    // 2. Complete User Info Save Karo (Navbar aur Auth Checks ke liye)
+    const userPayload = data.user ? { ...data.user, token } : data;
+    localStorage.setItem('userInfo', JSON.stringify(userPayload));
+
+    if (data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+    }
+
+    // 3. Role Based Navigation
+    const userRole = data.role || data.user?.role;
+
+    if (userRole === 'admin') {
+      navigate('/admin-dashboard');
+    } else {
+      navigate('/userdashboard');
+    }
+
+  } catch (err: any) {
+    alert(err.response?.data?.message || "Login failed");
+  } finally {
+    setLoading(false);
+  }
 };
 
   return (
