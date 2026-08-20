@@ -2,10 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import Navbar from '../components/Navbar';
-import { ShieldCheck, Send } from 'lucide-react';
 
-const ConsultationPage = () => {
-  const [loading, setLoading] = useState(false);
+// 1. Form Data Interface Definition
+interface FormDataState {
+  service: string;
+  requirementType: string;
+  incomeRange: string;
+  incomeSources: string[];
+  name: string;
+  email: string;
+  phone: string;
+}
+
+const ConsultationPage: React.FC = () => {
+  const [loading, setLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -16,79 +26,83 @@ const ConsultationPage = () => {
     }
   }, [navigate]);
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormDataState>({
     service: '', 
     requirementType: '',
     incomeRange: '',
-    incomeSources: [] as string[],
+    incomeSources: [],
     name: '',
     email: '',
     phone: ''
   });
 
-  const servicesList = ['Tax Preparation', 'Financial Advisory', 'Accounting', 'Other'];
-  const requirementsList = ['Personal', 'Business', 'Non-Government', 'Charity Organization', 'Residential Society'];
-  const incomeRanges = ['Less than Rs 2.5 Lakhs', 'Rs 2.5 - 4.9 Lakhs', 'Rs 5 - 10 Lakhs', 'Rs 10 - 50 Lakhs', 'More than Rs 50 Lakhs', 'Prefer not to say'];
-  
-  // Updated source list with your requested options
-  const sourceList = ['Salary', 'Business', 'Investments', 'Rental', 'Other'];
+  const servicesList: string[] = ['Tax Preparation', 'Financial Advisory', 'Accounting', 'Other'];
+  const requirementsList: string[] = ['Personal', 'Business', 'Non-Government', 'Charity Organization', 'Residential Society'];
+  const incomeRanges: string[] = ['Less than Rs 2.5 Lakhs', 'Rs 2.5 - 4.9 Lakhs', 'Rs 5 - 10 Lakhs', 'Rs 10 - 50 Lakhs', 'More than Rs 50 Lakhs', 'Prefer not to say'];
+  const sourceList: string[] = ['Salary', 'Business', 'Investments', 'Rental', 'Other'];
 
-  const handleServiceSelect = (value: string) => {
+  const handleServiceSelect = (value: string): void => {
     setFormData(prev => ({
       ...prev,
       service: value 
     }));
   };
 
-  const toggleArrayItem = (listName: 'incomeSources', value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [listName]: prev[listName].includes(value) 
-        ? prev[listName].filter(i => i !== value) 
-        : [...prev[listName], value]
-    }));
+  // 2. Type-Safe Array Toggle Function
+  const toggleArrayItem = (
+    listName: keyof FormDataState, 
+    value: string
+  ): void => {
+    setFormData(prev => {
+      const currentList = prev[listName];
+      if (Array.isArray(currentList)) {
+        return {
+          ...prev,
+          [listName]: currentList.includes(value) 
+            ? currentList.filter((i: string) => i !== value) 
+            : [...currentList, value]
+        };
+      }
+      return prev;
+    });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
 
     // 1. Phone Validation
     if (formData.phone.length !== 10) {
-        alert("Error: Phone number must be exactly 10 digits.");
-        return;
+      alert("Error: Phone number must be exactly 10 digits.");
+      return;
     }
 
     // 2. Form Field Validation
     if (!formData.service || !formData.requirementType || !formData.incomeRange) {
-        alert("Please fill in all required fields marked with *");
-        return;
+      alert("Please fill in all required fields marked with *");
+      return;
     }
 
     try {
-        setLoading(true);
-        
-        // Ensure this matches your backend route exactly!
-        // If your backend says app.use('/api/consultations', ...), 
-        // and inside that router you have .post('/submit', ...), this is correct.
-        await API.post('/consultations/submit', { answers: formData });
-        
-        alert("Consultation submitted successfully!");
-        navigate('/userdashboard');
+      setLoading(true);
+      await API.post('/consultations/submit', { answers: formData });
+      
+      alert("Consultation submitted successfully!");
+      navigate('/userdashboard');
     } catch (err: any) { 
-        // UPDATED: Better error logging
-        const errorMessage = err.response?.data?.message || "Submission failed. Please try again.";
-        console.error("API Error:", err.response?.status, errorMessage);
-        
-        if (err.response?.status === 401) {
-            alert("Session expired. Please log in again.");
-            navigate('/login'); // Redirect if unauthorized
-        } else {
-            alert(errorMessage);
-        }
+      const errorMessage = err.response?.data?.message || "Submission failed. Please try again.";
+      console.error("API Error:", err.response?.status, errorMessage);
+      
+      if (err.response?.status === 401) {
+        alert("Session expired. Please log in again.");
+        navigate('/login');
+      } else {
+        alert(errorMessage);
+      }
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
-};
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 pt-28 pb-20">
       <Navbar />
@@ -100,7 +114,7 @@ const ConsultationPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="p-10 space-y-10">
-            {/* 1. Services - SINGLE SELECT */}
+            {/* 1. Services */}
             <div>
               <label className="block text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Interested Service *</label>
               <div className="grid grid-cols-2 gap-3">
@@ -127,7 +141,7 @@ const ConsultationPage = () => {
               <select 
                 required
                 value={formData.requirementType}
-                onChange={(e) => setFormData({...formData, requirementType: e.target.value})} 
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData({...formData, requirementType: e.target.value})} 
                 className="w-full p-4 bg-slate-50 border-none rounded-2xl font-bold outline-none ring-2 ring-transparent focus:ring-blue-900 transition"
               >
                 <option value="">Select Category</option>
@@ -142,12 +156,12 @@ const ConsultationPage = () => {
                 {incomeRanges.map(range => (
                   <label key={range} className={`flex items-center gap-3 p-4 rounded-2xl cursor-pointer transition ${formData.incomeRange === range ? 'bg-blue-50 border border-blue-100' : 'bg-slate-50 hover:bg-slate-100'}`}>
                     <input 
-                        type="radio" 
-                        name="income" 
-                        required
-                        checked={formData.incomeRange === range}
-                        onChange={() => setFormData({...formData, incomeRange: range})} 
-                        className="w-5 h-5 accent-blue-900" 
+                      type="radio" 
+                      name="income" 
+                      required
+                      checked={formData.incomeRange === range}
+                      onChange={() => setFormData({...formData, incomeRange: range})} 
+                      className="w-5 h-5 accent-blue-900" 
                     />
                     <span className={`text-sm font-bold ${formData.incomeRange === range ? 'text-blue-900' : 'text-slate-700'}`}>{range}</span>
                   </label>
@@ -155,7 +169,7 @@ const ConsultationPage = () => {
               </div>
             </div>
 
-            {/* --- ADDITIONAL FIELD: Primary Income Sources (Optional) --- */}
+            {/* 4. Primary Income Sources */}
             <div>
               <label className="block text-sm font-black uppercase tracking-widest text-slate-400 mb-4">
                 Primary Income Sources <span className="text-[10px] lowercase font-medium">(Optional)</span>
@@ -178,51 +192,56 @@ const ConsultationPage = () => {
               </div>
             </div>
 
-            {/* 4. Contact Info */}
+            {/* 5. Contact Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
-                <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase text-slate-400 px-2">Full Name</p>
-                    <input type="text" placeholder="John Doe" required value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-blue-900 transition" />
-                </div>
-                <div className="space-y-1">
-                    <p className="text-[10px] font-black uppercase text-slate-400 px-2">Email Address</p>
-                    <input type="email" placeholder="john@example.com" required value={formData.email} onChange={(e) => setFormData({...formData, email: e.target.value})} className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-blue-900 transition" />
-                </div>
-                {/* <div className="space-y-1 md:col-span-2">
-                    <p className="text-[10px] font-black uppercase text-slate-400 px-2">Phone Number</p>
-                    <input type="tel" placeholder="+91 XXXXX XXXXX" required value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-blue-900 transition" />
-                </div> */}
-                <div className="space-y-1 md:col-span-2">
-                  <p className="text-[10px] font-black uppercase text-slate-400 px-2">Phone Number (10 Digits)</p>
-                  <input 
-                    type="tel" 
-                    placeholder="(+91) XXXXXXXXXX" 
-                    required 
-                    maxLength={10} // Prevents typing more than 10 digits
-                    value={formData.phone} 
-                    onChange={(e) => {
-                      // REGEX: Replace anything that is NOT a number with an empty string
-                      const value = e.target.value.replace(/\D/g, ''); 
-                      setFormData({...formData, phone: value});
-                    }} 
-                    className={`w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none transition border-2 ${
-                      formData.phone.length > 0 && formData.phone.length < 10 
-                      ? 'border-red-200 focus:ring-red-500' 
-                      : 'border-transparent focus:ring-blue-900'
-                    }`} 
-                  />
-                  {/* Real-time Validation Message */}
-                  {formData.phone.length > 0 && formData.phone.length < 10 && (
-                    <p className="text-[10px] text-red-500 font-bold px-2 italic animate-pulse">
-                      Enter exactly 10 digits
-                    </p>
-                  )}
-                </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase text-slate-400 px-2">Full Name</p>
+                <input 
+                  type="text" 
+                  placeholder="John Doe" 
+                  required 
+                  value={formData.name} 
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, name: e.target.value})} 
+                  className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-blue-900 transition" 
+                />
               </div>
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase text-slate-400 px-2">Email Address</p>
+                <input 
+                  type="email" 
+                  placeholder="john@example.com" 
+                  required 
+                  value={formData.email} 
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFormData({...formData, email: e.target.value})} 
+                  className="w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none focus:ring-2 focus:ring-blue-900 transition" 
+                />
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <p className="text-[10px] font-black uppercase text-slate-400 px-2">Phone Number (10 Digits)</p>
+                <input 
+                  type="tel" 
+                  placeholder="(+91) XXXXXXXXXX" 
+                  required 
+                  maxLength={10}
+                  value={formData.phone} 
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    const value = e.target.value.replace(/\D/g, ''); 
+                    setFormData({...formData, phone: value});
+                  }} 
+                  className={`w-full p-4 bg-slate-50 rounded-2xl font-bold outline-none transition border-2 ${
+                    formData.phone.length > 0 && formData.phone.length < 10 
+                    ? 'border-red-200 focus:ring-red-500' 
+                    : 'border-transparent focus:ring-blue-900'
+                  }`} 
+                />
+                {formData.phone.length > 0 && formData.phone.length < 10 && (
+                  <p className="text-[10px] text-red-500 font-bold px-2 italic animate-pulse">
+                    Enter exactly 10 digits
+                  </p>
+                )}
+              </div>
+            </div>
 
-            {/* <button type="submit" className="w-full py-5 bg-blue-900 text-white rounded-[2rem] font-black text-lg flex items-center justify-center gap-3 shadow-xl shadow-blue-900/30 hover:scale-[1.02] transition">
-              <Send size={20} /> Submit Consultation Request
-            </button> */}
             <button
               type="submit"
               disabled={formData.phone.length !== 10 || loading}
