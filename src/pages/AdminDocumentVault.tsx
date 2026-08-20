@@ -176,9 +176,12 @@ const AdminDocumentVault = () => {
 
                     // If it's already an S3 URL or external link, use it directly. 
                     // Otherwise fallback/construct proper link.
+
+                    const S3_BUCKET_URL = "https://pinnacle-storage-2026.s3.ap-south-1.amazonaws.com";
+
                     let fileUrl = rawPath;
                     if (!rawPath.startsWith('http')) {
-                      fileUrl = `https://pinnacle-backend-1-qyyx.onrender.com/${rawPath.replace(/\\/g, '/')}`;
+                      fileUrl = `${S3_BUCKET_URL}/${rawPath.replace(/\\/g, '/')}`;
                     }
 
                     return (
