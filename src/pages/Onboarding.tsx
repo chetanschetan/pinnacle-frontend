@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, ArrowRight, Shield, LayoutDashboard, LogOut } from 'lucide-react';
 
-const Home = () => {
+const Onboarding = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -152,4 +152,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Onboarding;
