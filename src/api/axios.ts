@@ -24,7 +24,7 @@ import axios from 'axios';
 
 // Vercel Proxy will redirect '/api' requests to your EC2 IP http://13.233.157.176:5000/api
 const API = axios.create({
-  baseURL: 'https://noticed-visiting-option-occupational.trycloudflare.com/api', 
+  baseURL: 'https://yarn-harrison-card-another.trycloudflare.com/api', 
   withCredentials: true,
 });
 
