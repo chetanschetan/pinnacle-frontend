@@ -80,7 +80,7 @@ const Footer = () => {
           <span className="text-blue-500">❤️</span>
           <span>by</span>
           <a 
-            href="https://your-portfolio-link.com" // Replace with your actual portfolio, GitHub, or LinkedIn URL
+            href="https://chetan-dev-folio.vercel.app/" // Replace with your actual portfolio, GitHub, or LinkedIn URL
             target="_blank" 
             rel="noopener noreferrer"
             className="text-white font-semibold hover:text-blue-400 transition"
