@@ -186,9 +186,12 @@ const AdminDashboard = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredUsers.map((client) => {
-                  const clientName = client.userInfo?.fullName || 'User';
-                  const formattedName = clientName.trim().replace(/\s+/g, '_');
+                  if (client.userInfo?.role === 'admin') return null;
 
+                  const clientName = client.userInfo?.fullName || client.userInfo?.name || 'Client';
+                  const clientEmail = client.userInfo?.email || 'No email provided';
+                  const formattedName = clientName.trim().replace(/\s+/g, '_');
+                  
                   return (
                     <div 
                       key={client.userInfo._id}

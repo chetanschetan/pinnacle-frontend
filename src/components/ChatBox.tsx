@@ -161,24 +161,30 @@ const handleSend = async () => {
             </div>
 
             <div className="flex-1 overflow-y-auto p-5 bg-slate-50 space-y-4">
+              
               {messages.map((m: any, i: number) => {
                 const currentUserId = String(myId).trim();
-                const msgSenderId = String(m.senderId || m.sender?._id || m.sender || "").trim();
+                
+                // Safe extraction chahe sender string ho ya populated object
+                const msgSenderId = String(
+                  typeof m.sender === 'object' ? m.sender?._id : (m.senderId || m.sender || '')
+                ).trim();
+
                 const isMe = currentUserId === msgSenderId && currentUserId !== "";
 
                 return (
-                  <div key={i} className="flex flex-col space-y-1 items-start">
+                  <div key={i} className={`flex flex-col space-y-1 ${isMe ? 'items-end' : 'items-start'}`}>
                     <span className={`text-[9px] font-black uppercase tracking-tighter ${isMe ? 'text-blue-600' : 'text-slate-400'}`}>
-                      {isMe ? "You" : (m.senderName || receiverName)}
+                      {isMe ? "You" : (m.senderName || receiverName || "Admin")}
                     </span>
-                    <div className={`max-w-[90%] p-3 rounded-2xl text-[11px] font-bold shadow-sm rounded-tl-none border ${
-                      isMe ? 'bg-slate-100 text-slate-900 border-slate-200' : 'bg-white text-slate-700 border-slate-100'
-                    }`}>
+                    <div className={`max-w-[90%] p-3 rounded-2xl text-[11px] font-bold shadow-sm border ${
+                        isMe ? 'bg-slate-900 text-white rounded-tr-none border-slate-900' : 'bg-white text-slate-700 rounded-tl-none border-slate-100'
+                      }`}>
                       {m.content}
                     </div>
-                  </div>
-                );
-              })}
+                    </div>
+                  );
+                })}    
               <div ref={scrollRef} />
             </div>
 
