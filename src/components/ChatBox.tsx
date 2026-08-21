@@ -29,52 +29,48 @@ const ChatBox = ({ currentUser, receiverId, receiverName }: any) => {
   }
 
   const handleSend = async () => {
-    if (!input.trim() || !receiverId) return;
+  if (!input.trim() || !receiverId) return;
 
-    const textToSend = input;
-    const tempId = Date.now().toString();
-    const currentUserId = String(myId).trim();
-    setInput('');
+  const textToSend = input;
+  const tempId = 'temp_' + Date.now(); // Distinct temp prefix
+  const currentUserId = String(myId).trim();
+  setInput('');
 
-    // 1. Instant Optimistic UI Update
-    const optimisticMessage = {
-      _id: tempId,
-      senderId: currentUserId,
-      senderName: "You",
-      content: textToSend,
-      createdAt: new Date().toISOString()
-    };
-
-    setMessages((prev) => [...prev, optimisticMessage]);
-
-    // 2. Socket Relay
-    sendMessage(String(receiverId).trim(), textToSend, currentUser.fullName || "User");
-
-    try {
-      // 3. Save to Database
-      const response = await API.post('/chat/send', {
-        receiverId: String(receiverId).trim(),
-        content: textToSend
-      });
-      
-      const savedMsg = response.data || response;
-
-      // 4. Sync UI state securely ensuring senderId and sender name are preserved
-      setMessages((prev) =>
-        prev.map((msg) => 
-          msg._id === tempId 
-            ? { 
-                ...savedMsg, 
-                senderId: currentUserId, 
-                senderName: "You" 
-              } 
-            : msg
-        )
-      );
-    } catch (err: any) {
-      console.error("❌ DB Save Failed:", err.message);
-    }
+  // 1. Instant Optimistic UI Update
+  const optimisticMessage = {
+    _id: tempId,
+    senderId: currentUserId,
+    senderName: "You",
+    content: textToSend,
+    createdAt: new Date().toISOString()
   };
+
+  setMessages((prev) => [...prev, optimisticMessage]);
+
+  // 2. Socket Relay (Dusre user ke liye)
+  sendMessage(String(receiverId).trim(), textToSend, currentUser.fullName || "User");
+
+  try {
+    // 3. Save to Database
+    const response = await API.post('/chat/send', {
+      receiverId: String(receiverId).trim(),
+      content: textToSend
+    });
+    
+    const savedMsg = response.data || response;
+
+    // 4. Replace temp message with real DB message smoothly
+    setMessages((prev) =>
+      prev.map((msg) => 
+        msg._id === tempId 
+          ? { ...savedMsg, senderId: currentUserId, senderName: "You" } 
+          : msg
+      )
+    );
+  } catch (err: any) {
+    console.error("❌ DB Save Failed:", err.message);
+  }
+};
 
   return (
     <div className="fixed bottom-10 right-10 z-[10000]">
