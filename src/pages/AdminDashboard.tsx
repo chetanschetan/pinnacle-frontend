@@ -88,54 +88,58 @@ const EmptyState = ({ searchTerm, clearSearch }: { searchTerm: string, clearSear
   </div>
 );
 
-const AdminDashboard = () => {
+  const AdminDashboard = () => {
   const [groupedUsers, setGroupedUsers] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchAndGroup = async () => {
-      try {
-        const { data } = await API.get('/consultations/admin/all');
+  const fetchAndGroup = async () => {
+    try {
+      const { data } = await API.get('/consultations/admin/all');
+      
+      const groups = data.reduce((acc: any, req: any) => {
+        // Skip agar user admin hai ya user object missing hai
+        if (!req.user || req.user.role === 'admin') return acc;
+
+        const userId = req.user._id || req.user.id;
+        if (!userId) return acc;
+
+        if (!acc[userId]) {
+          acc[userId] = {
+            userInfo: req.user,
+            requestCount: 0,
+            latestService: req.answers?.service || 'General Inquiry',
+            latestStatus: req.status,
+            lastActivity: new Date(req.createdAt).getTime(),
+            hasUnreviewedDocs: false 
+          };
+        }
         
-        const groups = data.reduce((acc: any, req: any) => {
-          const userId = req.user?._id;
-          if (!userId) return acc;
+        acc[userId].requestCount += 1;
+        if (req.documents && req.documents.length > 0) acc[userId].hasUnreviewedDocs = true;
 
-          if (!acc[userId]) {
-            acc[userId] = {
-              userInfo: req.user,
-              requestCount: 0,
-              latestService: req.answers?.service || 'General Inquiry',
-              latestStatus: req.status,
-              lastActivity: new Date(req.createdAt).getTime(),
-              hasUnreviewedDocs: false 
-            };
-          }
-          
-          acc[userId].requestCount += 1;
-          if (req.documents && req.documents.length > 0) acc[userId].hasUnreviewedDocs = true;
+        const currentReqTime = new Date(req.createdAt).getTime();
+        if (currentReqTime > acc[userId].lastActivity) {
+          acc[userId].latestStatus = req.status;
+          acc[userId].latestService = req.answers?.service || acc[userId].latestService;
+          acc[userId].lastActivity = currentReqTime;
+        }
+        return acc;
+      }, {});
 
-          const currentReqTime = new Date(req.createdAt).getTime();
-          if (currentReqTime > acc[userId].lastActivity) {
-            acc[userId].latestStatus = req.status;
-            acc[userId].latestService = req.answers?.service;
-            acc[userId].lastActivity = currentReqTime;
-          }
-          return acc;
-        }, {});
-
-        const finalSortedArray = Object.values(groups).sort((a: any, b: any) => b.lastActivity - a.lastActivity);
-        setGroupedUsers(finalSortedArray);
-      } catch (err) {
-        console.error("Fetch Error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAndGroup();
-  }, []);
+      const finalSortedArray = Object.values(groups).sort((a: any, b: any) => b.lastActivity - a.lastActivity);
+      setGroupedUsers(finalSortedArray);
+    } catch (err) {
+      console.error("Fetch Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  fetchAndGroup();
+}, []);
 
   const filteredUsers = groupedUsers.filter(u => 
     u.userInfo?.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||

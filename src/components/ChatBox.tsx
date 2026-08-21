@@ -163,28 +163,38 @@ const handleSend = async () => {
             <div className="flex-1 overflow-y-auto p-5 bg-slate-50 space-y-4">
               
               {messages.map((m: any, i: number) => {
-                const currentUserId = String(myId).trim();
+                // Normalize both IDs to strings and trim whitespace
+                const currentUserId = String(myId || "").trim();
                 
-                // Safe extraction chahe sender string ho ya populated object
-                const msgSenderId = String(
-                  typeof m.sender === 'object' ? m.sender?._id : (m.senderId || m.sender || '')
-                ).trim();
+                // Extract sender ID safely whether it's a populated object, string, or nested ID
+                let msgSenderId = "";
+                if (m.sender && typeof m.sender === 'object') {
+                  msgSenderId = String(m.sender._id || m.sender.id || "").trim();
+                } else {
+                  msgSenderId = String(m.senderId || m.sender || "").trim();
+                }
 
-                const isMe = currentUserId === msgSenderId && currentUserId !== "";
+                // Strict check: Is this message sent by me?
+                const isMe = currentUserId !== "" && currentUserId === msgSenderId;
 
                 return (
-                  <div key={i} className={`flex flex-col space-y-1 ${isMe ? 'items-end' : 'items-start'}`}>
-                    <span className={`text-[9px] font-black uppercase tracking-tighter ${isMe ? 'text-blue-600' : 'text-slate-400'}`}>
-                      {isMe ? "You" : (m.senderName || receiverName || "Admin")}
+                  <div key={m._id || i} className={`flex flex-col mb-3 ${isMe ? 'items-end' : 'items-start'}`}>
+                    {/* Sender Label */}
+                    <span className="text-[9px] font-black uppercase tracking-tighter text-slate-400 mb-0.5 px-1">
+                      {isMe ? "You" : (receiverName || m.senderName || "Admin")}
                     </span>
-                    <div className={`max-w-[90%] p-3 rounded-2xl text-[11px] font-bold shadow-sm border ${
-                        isMe ? 'bg-slate-900 text-white rounded-tr-none border-slate-900' : 'bg-white text-slate-700 rounded-tl-none border-slate-100'
-                      }`}>
+
+                    {/* WhatsApp Style Bubble */}
+                    <div className={`max-w-[80%] px-4 py-2.5 rounded-2xl text-xs font-medium shadow-sm ${
+                      isMe 
+                        ? 'bg-blue-600 text-white rounded-tr-none' 
+                        : 'bg-white text-slate-800 border border-slate-100 rounded-tl-none'
+                    }`}>
                       {m.content}
                     </div>
-                    </div>
-                  );
-                })}    
+                  </div>
+                );
+              })}    
               <div ref={scrollRef} />
             </div>
 
