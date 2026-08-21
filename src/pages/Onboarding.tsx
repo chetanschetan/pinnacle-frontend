@@ -125,7 +125,7 @@ const Onboarding = () => {
                 
                 <div className="relative rounded-[2rem] overflow-hidden border-[6px] border-white shadow-xl transition-all duration-700">
                   <img 
-                    src="https://images.unsplash.com/photo-1554224155-1696413575b9?auto=format&fit=crop&q=80&w=800" 
+                    src="/dashboardPic.png" 
                     alt="Professional Context" 
                     className="w-full aspect-[4/5] object-cover"
                   />
