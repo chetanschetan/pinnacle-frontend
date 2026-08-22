@@ -177,23 +177,55 @@ const ChatBox = ({ currentUser, receiverId, receiverName }: any) => {
     return null;
   }
 
+  // const handleSend = async () => {
+  //   if (!input.trim() || !receiverId) return;
+
+  //   const textToSend = input;
+  //   const tempId = 'temp_' + Date.now();
+  //   const currentUserId = String(myId).trim();
+  //   setInput('');
+
+  //   const optimisticMessage = {
+  //     _id: tempId,
+  //     senderId: currentUserId,
+  //     senderName: "You",
+  //     content: textToSend,
+  //     createdAt: new Date().toISOString()
+  //   };
+
+  //   setMessages((prev) => [...prev, optimisticMessage]);
+  //   sendMessage(String(receiverId).trim(), textToSend, currentUser.fullName || "User");
+
+  //   try {
+  //     const response = await API.post('/chat/send', {
+  //       receiverId: String(receiverId).trim(),
+  //       content: textToSend
+  //     });
+      
+  //     const savedMsg = response.data || response;
+
+  //     setMessages((prev) =>
+  //       prev.map((msg) => 
+  //         msg._id === tempId 
+  //           ? { ...savedMsg, senderId: currentUserId, senderName: "You" } 
+  //           : msg
+  //       )
+  //     );
+  //   } catch (err: any) {
+  //     console.error("❌ DB Save Failed:", err.message);
+  //   }
+  // };
+
+
   const handleSend = async () => {
     if (!input.trim() || !receiverId) return;
 
     const textToSend = input;
-    const tempId = 'temp_' + Date.now();
-    const currentUserId = String(myId).trim();
     setInput('');
 
-    const optimisticMessage = {
-      _id: tempId,
-      senderId: currentUserId,
-      senderName: "You",
-      content: textToSend,
-      createdAt: new Date().toISOString()
-    };
-
-    setMessages((prev) => [...prev, optimisticMessage]);
+    // Don't push optimistic message manually here to avoid duplication. 
+    // Let socket/API handle it cleanly, or rely on proper temp ID replacement.
+    
     sendMessage(String(receiverId).trim(), textToSend, currentUser.fullName || "User");
 
     try {
@@ -204,18 +236,23 @@ const ChatBox = ({ currentUser, receiverId, receiverName }: any) => {
       
       const savedMsg = response.data || response;
 
-      setMessages((prev) =>
-        prev.map((msg) => 
-          msg._id === tempId 
-            ? { ...savedMsg, senderId: currentUserId, senderName: "You" } 
-            : msg
-        )
-      );
+      // Add to state only if not already added by socket
+      setMessages((prev) => {
+        const exists = prev.some((m) => m._id === savedMsg._id);
+        if (exists) return prev;
+        return [...prev, {
+          ...savedMsg,
+          senderId: String(myId).trim(),
+          senderName: "You"
+        }];
+      });
     } catch (err: any) {
       console.error("❌ DB Save Failed:", err.message);
     }
   };
 
+
+  
   return (
     <div className="fixed bottom-10 right-10 z-[10000]">
       {!isOpen ? (
