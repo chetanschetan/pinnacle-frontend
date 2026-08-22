@@ -217,18 +217,17 @@ const ChatBox = ({ currentUser, receiverId, receiverName }: any) => {
   // };
 
 
-  const handleSend = async () => {
+ const handleSend = async () => {
     if (!input.trim() || !receiverId) return;
 
     const textToSend = input;
     setInput('');
 
-    // Don't push optimistic message manually here to avoid duplication. 
-    // Let socket/API handle it cleanly, or rely on proper temp ID replacement.
-    
+    // 1. Sirf Socket par emit karo (Real-time delivery ke liye)
     sendMessage(String(receiverId).trim(), textToSend, currentUser.fullName || "User");
 
     try {
+      // 2. Database mein save karne ke liye API call
       const response = await API.post('/chat/send', {
         receiverId: String(receiverId).trim(),
         content: textToSend
@@ -236,10 +235,16 @@ const ChatBox = ({ currentUser, receiverId, receiverName }: any) => {
       
       const savedMsg = response.data || response;
 
-      // Add to state only if not already added by socket
+      // 3. Strict Check: Agar socket ne message pehle hi laakar state mein daal diya hai, 
+      // toh API response wala message dobara add mat karo!
       setMessages((prev) => {
-        const exists = prev.some((m) => m._id === savedMsg._id);
+        const exists = prev.some((m) => 
+          (savedMsg._id && m._id === savedMsg._id) || 
+          (m.content === textToSend && !m._id?.startsWith('temp_'))
+        );
+        
         if (exists) return prev;
+
         return [...prev, {
           ...savedMsg,
           senderId: String(myId).trim(),
@@ -252,7 +257,6 @@ const ChatBox = ({ currentUser, receiverId, receiverName }: any) => {
   };
 
 
-  
   return (
     <div className="fixed bottom-10 right-10 z-[10000]">
       {!isOpen ? (
